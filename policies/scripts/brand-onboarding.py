@@ -1,5 +1,4 @@
 # Script to onboard new brands into the Team.blue ecosystem
-import json
 from datetime import datetime
 from typing import Dict, Optional
 from collections import deque
@@ -32,7 +31,6 @@ def track_event(event_type: str, session_id: str, timestamp: Optional[str] = Non
     
     # FIX: Prevent memory leak by limiting cache size
     # deque with maxlen automatically removes oldest when full
-    global _event_cache
     _event_cache.append(event)
     
     return event
@@ -77,5 +75,4 @@ def clear_event_cache() -> None:
     Clear the event cache.
     Should be called periodically to free memory.
     """
-    global _event_cache
     _event_cache.clear()
