@@ -2,11 +2,12 @@
 import json
 from datetime import datetime
 from typing import Dict, Optional
+from collections import deque
 
-# FIX: Use a bounded list instead of unbounded to prevent memory leak
+# FIX: Use a bounded deque instead of unbounded list to prevent memory leak
 # Previous implementation accumulated events indefinitely
 MAX_EVENTS_IN_MEMORY = 100
-_event_cache = []
+_event_cache = deque(maxlen=MAX_EVENTS_IN_MEMORY)
 
 def track_event(event_type: str, session_id: str, timestamp: Optional[str] = None) -> Dict:
     """
@@ -21,7 +22,7 @@ def track_event(event_type: str, session_id: str, timestamp: Optional[str] = Non
         Dict with event structure
     """
     if timestamp is None:
-        timestamp = datetime.now().strftime("%Y-%m-%d")
+        timestamp = datetime.now().isoformat()
     
     event = {
         "event_type": event_type,
@@ -30,11 +31,9 @@ def track_event(event_type: str, session_id: str, timestamp: Optional[str] = Non
     }
     
     # FIX: Prevent memory leak by limiting cache size
-    # Only keep most recent events in memory
+    # deque with maxlen automatically removes oldest when full
     global _event_cache
     _event_cache.append(event)
-    if len(_event_cache) > MAX_EVENTS_IN_MEMORY:
-        _event_cache.pop(0)  # Remove oldest event
     
     return event
 
@@ -53,7 +52,7 @@ def onboard_brand(brand_name: str, session_id: Optional[str] = None) -> Dict:
     
     # Generate session_id if not provided
     if session_id is None:
-        session_id = f"{brand_name}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        session_id = f"{brand_name}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
     
     # Track the onboarding event
     event = track_event("brand_onboarding_started", session_id)
@@ -71,7 +70,7 @@ def get_cached_events() -> list:
     Returns:
         List of recent events (max MAX_EVENTS_IN_MEMORY)
     """
-    return _event_cache.copy()
+    return list(_event_cache)
 
 def clear_event_cache() -> None:
     """
@@ -79,4 +78,4 @@ def clear_event_cache() -> None:
     Should be called periodically to free memory.
     """
     global _event_cache
-    _event_cache = []
+    _event_cache.clear()
