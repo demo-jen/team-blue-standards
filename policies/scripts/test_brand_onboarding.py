@@ -72,20 +72,6 @@ class TestMerchantBankingGateway(unittest.TestCase):
         self.assertEqual(payload['merchant_region'], 'FI')
 
     @patch('requests.post')
-    def test_finnish_region_field_value(self, mock_post):
-        """Test that Finnish merchants have region='FI' in payload"""
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_post.return_value = mock_response
-
-        verify_merchant_banking_gateway(self.merchant_data, region='FI')
-
-        # Verify the merchant_region is 'FI' for Finnish merchants
-        call_kwargs = mock_post.call_args[1]
-        payload = call_kwargs['json']
-        self.assertEqual(payload['merchant_region'], 'FI')
-
-    @patch('requests.post')
     def test_payload_structure(self, mock_post):
         """Test that the payload has all required fields"""
         mock_response = Mock()
